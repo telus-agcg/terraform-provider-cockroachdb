@@ -1,0 +1,8 @@
+---
+repos:
+    - repo: https://gitlab.agintegrated.com/agintegrated/adx/pre-commit
+      rev: v0.0.11
+      hooks:
+          - id: megalinter-full
+            verbose: true
+            args: [--megaLinterVersion=v6]
