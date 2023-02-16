@@ -34,11 +34,9 @@ create-dev-overrides:
 	@echo "Follow these instructions https://developer.hashicorp.com/terraform/cli/config/config-file#development-overrides-for-provider-developers"
 	@echo "Set dev_overrides to \"telusag/cockroachdb\" = \"[bin_location]\""
 
-# Taken straight from https://www.cockroachlabs.com/docs/stable/cockroach-start-single-node.html#start-a-single-node-cluster
-# Pre-req to install the cockroach CLI
-start-crdb:
-	mkdir -p certs my-safe-directory
-	cockroach cert create-ca --certs-dir=certs --ca-key=my-safe-directory/ca.key --allow-ca-key-reuse --overwrite
-	cockroach cert create-node localhost $(hostname) --certs-dir=certs --ca-key=my-safe-directory/ca.key --overwrite
-	cockroach cert create-client root --certs-dir=certs --ca-key=my-safe-directory/ca.key --overwrite
-	cockroach start-single-node --certs-dir=certs --listen-addr=localhost:26257 --http-addr=localhost:8080
+start-test-crdb:
+	mkdir -p certs my-safe-directory cockroach-data
+	docker run -it -v $(CURDIR)/certs:/certs -v $(CURDIR)/my-safe-directory:/my-safe-directory cockroachdb/cockroach:v22.2.4 cert create-ca --certs-dir=/certs --ca-key=/my-safe-directory/ca.key --allow-ca-key-reuse --overwrite
+	docker run -it -v $(CURDIR)/certs:/certs -v $(CURDIR)/my-safe-directory:/my-safe-directory cockroachdb/cockroach:v22.2.4 cert create-node 127.0.0.1 localhost --certs-dir=/certs --ca-key=/my-safe-directory/ca.key --overwrite
+	docker run -it -v $(CURDIR)/certs:/certs -v $(CURDIR)/my-safe-directory:/my-safe-directory cockroachdb/cockroach:v22.2.4 cert create-client root --certs-dir=/certs --ca-key=/my-safe-directory/ca.key --overwrite
+	docker run -it -p 8080:8080 -p 26257:26257 -v $(CURDIR)/cockroach-data:/cockroach-data -v $(CURDIR)/certs:/certs -v $(CURDIR)/my-safe-directory:/my-safe-directory cockroachdb/cockroach:v22.2.4 start-single-node --certs-dir=/certs

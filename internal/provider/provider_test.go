@@ -11,10 +11,6 @@ var providerFactories = map[string]func() (tfprotov6.ProviderServer, error){
 	"cockroachdb": providerserver.NewProtocol6WithError(New("test")()),
 }
 
-// func testAccPreCheck(t *testing.T) {
-
-// }
-
 type SslConfig struct {
 	mode     string
 	rootcert string
