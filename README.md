@@ -66,15 +66,7 @@ To generate or update documentation, run `make generate-docs`.
 
 ### Tests
 
-In order to run the full suite of Acceptance tests, run `make testacc`.
-
-_Note:_ Acceptance tests create real resources, and often cost money to run.
-
-```sh
-$ docker run -it --rm --name=cockroach -p 26257:26257 -p 8080:8080 cockroachdb/cockroach:v22.1.6 start-single-node
-$ docker cp cockroach:/cockroach/certs .
-$ make testacc
-```
+In order to run the full suite of Acceptance tests, first run `make start-test-crdb` (in a different terminal) and wait for the DB to become available. Next run `make testacc` to run the acc tests against the db.
 
 ## Publishing
 

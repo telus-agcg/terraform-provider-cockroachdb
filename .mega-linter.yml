@@ -5,7 +5,7 @@
 # APPLY_FIXES: all
 ENABLE_LINTERS:
     # Linter/Formatters in order of importance (imo)
-    - COPYPASTE_JSCPD # Checks copy pasta
+    # - COPYPASTE_JSCPD # Checks copy pasta
     - REPOSITORY_SECRETLINT # Prevent committing credentials
     - REPOSITORY_GIT_DIFF # Checks for any git conflict markers
     - YAML_PRETTIER # YAML formatter

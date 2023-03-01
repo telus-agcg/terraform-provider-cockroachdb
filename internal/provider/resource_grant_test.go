@@ -2,13 +2,13 @@ package provider
 
 import (
 	"context"
-	"log"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/jackc/pgx/v5"
 )
 
 func TestAccGrantResource(t *testing.T) {
@@ -113,8 +113,7 @@ resource "cockroachdb_grant" "test_schema_grant" {
 	})
 }
 
-func createTractorTable(t *testing.T) {
-	log.Println("createTractorTable")
+func getDbConn() (*pgx.Conn, error) {
 	pv := getProviderVals()
 
 	provider := new(cockroachdbProvider)
@@ -133,20 +132,27 @@ func createTractorTable(t *testing.T) {
 		"key":      types.StringValue(pv.sslconfig.key),
 	})
 	provider.config.SslConfig = sslConfig
-	ctx := context.Background()
 
 	// Connect to db
-	conn, err := provider.Conn(ctx, "defaultdb")
+	conn, err := provider.Conn(context.Background(), "defaultdb")
+	if err != nil {
+		return nil, err
+	}
+
+	return conn, nil
+}
+
+func createTractorTable(t *testing.T) {
+	conn, err := getDbConn()
 	if err != nil {
 		t.Error(
-			"Cockroach connection error",
+			"Cockroach database connection error",
 			err.Error(),
 		)
-		return
 	}
 
 	// Create the tractor table
-	_, err = conn.Exec(ctx, `
+	_, err = conn.Exec(context.Background(), `
 		CREATE TABLE tractor (
 			tractor_id    INTEGER UNIQUE,
 			tractor_name  VARCHAR(50)
@@ -161,37 +167,13 @@ func createTractorTable(t *testing.T) {
 }
 
 func destroyTractorTable(s *terraform.State) error {
-	log.Println("destroyTractorTable")
-	pv := getProviderVals()
-
-	provider := new(cockroachdbProvider)
-	provider.config.Host = types.StringValue(pv.host)
-	provider.config.Port = types.Int64Value(int64(pv.port))
-	provider.config.User = types.StringValue(pv.user)
-	sslConfig, _ := types.ObjectValue(map[string]attr.Type{
-		"mode":     types.StringType,
-		"rootcert": types.StringType,
-		"cert":     types.StringType,
-		"key":      types.StringType,
-	}, map[string]attr.Value{
-		"mode":     types.StringValue(pv.sslconfig.mode),
-		"rootcert": types.StringValue(pv.sslconfig.rootcert),
-		"cert":     types.StringValue(pv.sslconfig.cert),
-		"key":      types.StringValue(pv.sslconfig.key),
-	})
-	provider.config.SslConfig = sslConfig
-	ctx := context.Background()
-
-	// Connect to db
-	conn, err := provider.Conn(ctx, "defaultdb")
+	conn, err := getDbConn()
 	if err != nil {
 		return err
 	}
 
 	// Delete the tractor table
-	_, err = conn.Exec(ctx, `
-		DROP TABLE tractor;
-	`)
+	_, err = conn.Exec(context.Background(), `DROP TABLE tractor;`)
 	if err != nil {
 		return err
 	}
