@@ -4,7 +4,7 @@ terraform {
   required_providers {
     cockroachdb = {
       source  = "telusag/cockroachdb"
-      version = "1.0.0"
+      version = ">= 0.0.1"
     }
   }
 }
